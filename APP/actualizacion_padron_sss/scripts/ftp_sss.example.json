@@ -1,0 +1,16 @@
+{
+  "osemm": {
+    "rnos": "REEMPLAZAR_RNOS",
+    "host": "padron.ftp.sssalud.gob.ar",
+    "puerto": 21,
+    "usuario": "REEMPLAZAR_USUARIO",
+    "clave": "REEMPLAZAR_CLAVE"
+  },
+  "otra_obra_social": {
+    "rnos": "REEMPLAZAR_RNOS",
+    "host": "padron.ftp.sssalud.gob.ar",
+    "puerto": 21,
+    "usuario": "REEMPLAZAR_USUARIO",
+    "clave": "REEMPLAZAR_CLAVE"
+  }
+}

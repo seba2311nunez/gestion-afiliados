@@ -1,0 +1,9 @@
+{
+  "default": {
+    "host": "ENDPOINT_MYSQL_O_RDS",
+    "port": 3306,
+    "usuario": "USUARIO_APLICACION",
+    "clave": "REEMPLAZAR",
+    "charset": "utf8"
+  }
+}

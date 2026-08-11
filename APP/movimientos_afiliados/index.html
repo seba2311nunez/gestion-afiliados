@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tablero de movimientos - Control DDJJ y Aportes</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+
+    <style>
+        body {
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        .card-indicador {
+            border: 0;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.08);
+        }
+
+        .numero {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .titulo {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+
+    <h3 class="mb-4">Tablero de movimientos de afiliados</h3>
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label>Desde</label>
+            <input type="month" id="periodo_desde" class="form-control">
+        </div>
+
+        <div class="col-md-3">
+            <label>Hasta</label>
+            <input type="month" id="periodo_hasta" class="form-control">
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primary w-100" onclick="cargarTablero()">
+                Aplicar filtros
+            </button>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+            <div class="card card-indicador p-3">
+                <div class="titulo">Total movimientos</div>
+                <div class="numero" id="total_movimientos">0</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-indicador p-3">
+                <div class="titulo">Altas</div>
+                <div class="numero text-success" id="total_altas">0</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-indicador p-3">
+                <div class="titulo">Bajas</div>
+                <div class="numero text-danger" id="total_bajas">0</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-indicador p-3">
+                <div class="titulo">Meses analizados</div>
+                <div class="numero" id="total_meses">0</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card p-3 mb-4">
+        <h5>Resumen mensual</h5>
+        <table id="tabla_resumen" class="table table-striped table-bordered w-100">
+            <thead>
+                <tr>
+                    <th>Periodo</th>
+                    <th>Total</th>
+                    <th>Altas</th>
+                    <th>Bajas</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <div class="card p-3">
+        <h5>Detalle de movimientos</h5>
+        <table id="tabla_detalle" class="table table-striped table-bordered w-100">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Periodo</th>
+                    <th>Afiliado</th>
+                    <th>CUIL</th>
+                    <th>Movimiento</th>
+                    <th>Origen</th>
+                    <th>Fecha</th>
+                    <th>Observación</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+<script>
+let tablaResumen = null;
+let tablaDetalle = null;
+
+$(document).ready(function() {
+    cargarTablero();
+});
+
+function cargarTablero() {
+
+    let desde = $("#periodo_desde").val();
+    let hasta = $("#periodo_hasta").val();
+
+    $.getJSON("ajax.php", {
+        parametro: "resumen_tablero",
+        desde: desde,
+        hasta: hasta
+    }, function(resp) {
+
+        $("#total_movimientos").html(resp.total_movimientos);
+        $("#total_altas").html(resp.total_altas);
+        $("#total_bajas").html(resp.total_bajas);
+        $("#total_meses").html(resp.total_meses);
+
+        cargarResumen(desde, hasta);
+        cargarDetalle(desde, hasta);
+    });
+}
+
+function cargarResumen(desde, hasta) {
+
+    if (tablaResumen !== null) {
+        tablaResumen.destroy();
+    }
+
+    tablaResumen = $("#tabla_resumen").DataTable({
+        ajax: {
+            url: "ajax.php",
+            type: "GET",
+            data: {
+                parametro: "resumen_mensual",
+                desde: desde,
+                hasta: hasta
+            },
+            dataSrc: ""
+        },
+        columns: [
+            { data: "periodo" },
+            { data: "total" },
+            { data: "altas" },
+            { data: "bajas" }
+        ],
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json"
+        }
+    });
+}
+
+function cargarDetalle(desde, hasta) {
+
+    if (tablaDetalle !== null) {
+        tablaDetalle.destroy();
+    }
+
+    tablaDetalle = $("#tabla_detalle").DataTable({
+        ajax: {
+            url: "ajax.php",
+            type: "GET",
+            data: {
+                parametro: "detalle_movimientos",
+                desde: desde,
+                hasta: hasta
+            },
+            dataSrc: ""
+        },
+        columns: [
+            { data: "id" },
+            { data: "periodo" },
+            { data: "afiliado" },
+            { data: "cuil" },
+            { data: "movimiento" },
+            { data: "origen" },
+            { data: "fecha" },
+            { data: "observacion" }
+        ],
+        pageLength: 25,
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json"
+        }
+    });
+}
+</script>
+
+</body>
+</html>

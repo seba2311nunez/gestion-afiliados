@@ -1,0 +1,18 @@
+.Estilo2 {color: #FFFFFF; font-weight: bold; }
+body,td,th {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+}
+input { font-weight:bold; font-family: Tahoma, Verdana, Arial; background-color: #EFEFEF; font-size: 10px; width: 130px; border: #D2D2D2; border-style: solid; border-top-width: 2px; border-right-width: 1px; border-bottom-width: 2px; border-left-width: 1px}
+select { font-family: Tahoma, Verdana, Arial; background-color: #EFEFEF; font-size: 10px; width: 130px; border: #D2D2D2; border-style: solid; border-top-width: 2px; border-right-width: 1px; border-bottom-width: 2px; border-left-width: 1px }
+
+.input { font-weight:bold; font-family: Tahoma, Verdana, Arial; background-color: #EFEFEF; font-size: 10px; width: 76px; border: #D2D2D2; border-style: solid; border-top-width: 2px; border-right-width: 1px; border-bottom-width: 2px; border-left-width: 1px}
+.numafi { font-weight:bold; font-family: Tahoma, Verdana, Arial; background-color: #EFEFEF; font-size: 10px; width: 93px; border: #D2D2D2; border-style: solid; border-top-width: 2px; border-right-width: 1px; border-bottom-width: 2px; border-left-width: 1px}
+.select { font-family: Tahoma, Verdana, Arial; background-color: #EFEFEF; font-size: 10px; width: 76px; border: #D2D2D2; border-style: solid; border-top-width: 2px; border-right-width: 1px; border-bottom-width: 2px; border-left-width: 1px }
+
+.sexo { font-family: Tahoma, Verdana, Arial; background-color: #EFEFEF; font-size: 10px; width: 40px; border: #D2D2D2; border-style: solid; border-top-width: 2px; border-right-width: 1px; border-bottom-width: 2px; border-left-width: 1px }
+
+.Estilo1 {
+	color: #FFFFFF;
+	font-weight: bold;
+}

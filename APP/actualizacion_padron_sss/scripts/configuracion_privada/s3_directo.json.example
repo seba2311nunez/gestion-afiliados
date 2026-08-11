@@ -1,0 +1,6 @@
+{
+  "default": {
+    "secret": "REEMPLAZAR_POR_UN_SECRETO_LARGO_Y_ALEATORIO",
+    "url": "https://sistemobrasocial.online/s3_directo/"
+  }
+}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos Adicionales - Afiliado</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+
+<div class="container mt-4">
+    <h3>Datos adicionales</h3>
+    <table class="table table-dark table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Dato Adicional</th>
+                <th>Fecha Inicio</th>
+                <th>Opciones</th>
+                <th>Fecha Límite</th>
+                <th>Precio</th>
+                <th>Observaciones</th>
+                <th>Documentación</th>
+                <th>Usuario</th>
+                <th>Fecha Carga</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Ejemplo de fila -->
+            <tr>
+                <td>1</td>
+                <td>Plan Médico</td>
+                <td><input type="date" class="form-control editable" data-field="fecha_inicio" value="2023-09-12"></td>
+                <td>planmed1</td>
+                <td><input type="date" class="form-control editable" data-field="fecha_limite" value="2025-11-07"></td>
+                <td><input type="number" step="0.01" class="form-control editable" data-field="precio" value="1450.2"></td>
+                <td><input type="text" class="form-control editable" data-field="observaciones" value="undefined"></td>
+                <td>null</td>
+                <td>admin_mteam</td>
+                <td>2024-10-31 17:44:38</td>
+            </tr>
+            <!-- Más filas según sea necesario -->
+        </tbody>
+    </table>
+
+    <button id="saveChanges" class="btn btn-success" onclick="guardarCambios()">Guardar cambios</button>
+    <button id="cancelChanges" class="btn btn-danger" onclick="cancelarCambios()">Cancelar</button>
+</div>
+
+<script>
+    // Variables para almacenar los cambios
+    const cambios = {};
+
+    // Guardar cambios cuando se edita un campo
+    document.querySelectorAll('.editable').forEach(input => {
+        input.addEventListener('input', function() {
+            const rowId = this.closest('tr').cells[0].innerText;  // Obtener el ID de la fila
+            const field = this.getAttribute('data-field');  // Campo que se está editando
+            cambios[rowId] = cambios[rowId] || {};
+            cambios[rowId][field] = this.value;  // Guardar el nuevo valor
+        });
+    });
+
+    // Función para guardar cambios
+    function guardarCambios() {
+        console.log('Guardando cambios:', cambios);
+        // Aquí puedes enviar los cambios al servidor usando AJAX
+        fetch('guardar_cambios.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cambios)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Cambios guardados con éxito');
+            location.reload();  // Recargar la página
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Función para cancelar cambios
+    function cancelarCambios() {
+        if (confirm('¿Seguro que deseas descartar los cambios?')) {
+            location.reload();  // Recargar para deshacer los cambios
+        }
+    }
+</script>
+
+</body>
+</html>

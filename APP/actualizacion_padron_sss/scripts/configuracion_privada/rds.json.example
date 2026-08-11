@@ -1,0 +1,16 @@
+{
+  "produccion": {
+    "host": "RDS1_ENDPOINT",
+    "port": 3306,
+    "usuario": "USUARIO_SOLO_LECTURA",
+    "clave": "REEMPLAZAR",
+    "ssl_ca": "C:/xampp/config/certs/global-bundle.pem"
+  },
+  "desarrollo": {
+    "host": "RDS2_ENDPOINT",
+    "port": 3306,
+    "usuario": "USUARIO_DESARROLLO",
+    "clave": "REEMPLAZAR",
+    "ssl_ca": "C:/xampp/config/certs/global-bundle.pem"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "osemm": {
+    "api_key": "REEMPLAZAR",
+    "model": "gpt-5.6-sol",
+    "max_output_tokens": 1200
+  }
+}

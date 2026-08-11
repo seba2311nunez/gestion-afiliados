@@ -1,0 +1,18 @@
+{
+  "osemm": {
+    "rnos": "REEMPLAZAR",
+    "host": "REEMPLAZAR",
+    "puerto": 21,
+    "usuario": "REEMPLAZAR",
+    "clave": "REEMPLAZAR",
+    "tls": true
+  },
+  "ospedyb": {
+    "rnos": "REEMPLAZAR",
+    "host": "",
+    "puerto": 21,
+    "usuario": "",
+    "clave": "no-compartida",
+    "tls": true
+  }
+}

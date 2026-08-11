@@ -1,0 +1,12 @@
+{
+  "osemm": {
+    "api_key": "REEMPLAZAR_POR_API_KEY",
+    "model": "gpt-5.6-sol",
+    "max_output_tokens": 1200
+  },
+  "default": {
+    "api_key": "REEMPLAZAR_POR_API_KEY_GENERAL",
+    "model": "gpt-5.6-sol",
+    "max_output_tokens": 1200
+  }
+}

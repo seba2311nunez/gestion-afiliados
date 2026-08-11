@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="../vendor/tabulator/tabulator.min.css" rel="stylesheet">
+<script src="../vendor/tabulator/tabulator.min.js"></script>
+</head><body>
+<div id="resultado">PROBANDO</div><div id="tabla"></div>
+<script>
+var datos = [
+  {id:1,numero:1,gerenciadora:"ASSISTENCIAL",dni:"12345678",movimiento:"A",fecha:"2026-08-03",error:"015",extra:"dato"},
+  {id:2,numero:2,gerenciadora:"PROPIOS",dni:"23456789",movimiento:"B",fecha:"2026-08-01"},
+  {id:3,numero:3,gerenciadora:"ASSISTENCIAL",dni:"34567890",movimiento:"M",fecha:"2026-08-02"}
+];
+function ordenarFecha(a,b){ return Date.parse(a)-Date.parse(b); }
+var grilla = new Tabulator("#tabla", {
+  data:datos,index:"id",pagination:true,paginationSize:3,movableColumns:true,
+  locale:"es-ar",langs:{"es-ar":{pagination:{first:"Primera",last:"Última",prev:"Anterior",next:"Siguiente"}}},
+  rowFormatter:function(row){if(row.getData().error)row.getElement().classList.add("fila-error-prueba")},
+  columns:[
+    {formatter:"rowSelection",titleFormatter:"rowSelection",width:34,headerSort:false},
+    {title:"#",field:"numero",sorter:"number",width:40},
+    {title:"Gerenciadora",field:"gerenciadora",headerFilter:"input"},
+    {title:"DNI",field:"dni",sorter:"number"},
+    {title:"Movimiento",field:"movimiento"},
+    {title:"Fecha",field:"fecha",sorter:ordenarFecha},
+    {title:"Extra",field:"extra",visible:false},
+    {title:"Acciones",formatter:function(){return "<button class='accion-prueba'>Ver</button>"},headerSort:false}
+  ]
+});
+grilla.on("tableBuilt", function(){
+  var cantidad = grilla.getDataCount();
+  grilla.setSort("fecha","asc");
+  setTimeout(function(){
+    var primera=grilla.getData("active")[0];
+    var acciones=document.querySelectorAll(".accion-prueba").length;
+    var oculta=!grilla.getColumn("extra").isVisible(); grilla.getColumn("extra").show();
+    var color=document.querySelectorAll(".fila-error-prueba").length>0;
+    document.getElementById("resultado").textContent = cantidad===3 && primera.id===2 && acciones===3 && oculta && grilla.getColumn("extra").isVisible() && color ? "PASS: datos, fechas, acciones, columnas y errores" : "FAIL: "+cantidad+"/"+acciones;
+  },100);
+});
+</script></body></html>
