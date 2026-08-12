@@ -31,12 +31,20 @@ header('Content-Type:text/html; charset=UTF-8');
 
 		<link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
 
-		<script src="http://34.123.90.171/dashboard_sistema/vendors/pnotify/dist/pnotify.js"></script>
-		<script src="http://34.123.90.171/dashboard_sistema/vendors/pnotify/dist/pnotify.buttons.js"></script>
-		<script src="http://34.123.90.171/dashboard_sistema/vendors/pnotify/dist/pnotify.nonblock.js"></script>
-		<link href="http://34.123.90.171/dashboard_sistema/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
-		<link href="http://34.123.90.171/dashboard_sistema/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
-		<link href="http://34.123.90.171/dashboard_sistema/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet">
+		<style>
+			.aviso-local { position:fixed; top:16px; right:16px; z-index:9999; max-width:360px; padding:12px 16px; border-radius:4px; color:#fff; box-shadow:0 2px 8px rgba(0,0,0,.25); }
+			.aviso-local-success { background:#2e7d32; }
+			.aviso-local-error { background:#c62828; }
+		</style>
+		<script>
+			function mostrarAvisoLocal(titulo, tipo){
+				var aviso = document.createElement('div');
+				aviso.className = 'aviso-local aviso-local-' + (tipo === 'success' ? 'success' : 'error');
+				aviso.textContent = titulo;
+				document.body.appendChild(aviso);
+				setTimeout(function(){ if(aviso.parentNode) aviso.parentNode.removeChild(aviso); }, 4000);
+			}
+		</script>
 
 		<style>
 			#divListado{
@@ -1215,17 +1223,9 @@ header('Content-Type:text/html; charset=UTF-8');
 						$('#modalEditarVencimiento').modal('toggle');
 						ListarLotes();
 						if(data==="ok"){
-							new PNotify({
-								title: 'Cambio Guardado',
-								styling: 'bootstrap3',
-								type: 'success'
-							});
+							mostrarAvisoLocal('Cambio Guardado', 'success');
 						}else{
-							new PNotify({
-								title: 'Error.',
-								styling: 'bootstrap3',
-								type: 'error'
-							});
+							mostrarAvisoLocal('Error.', 'error');
 						}
 					});
 				});
