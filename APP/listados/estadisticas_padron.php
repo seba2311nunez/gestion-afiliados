@@ -1,4 +1,8 @@
-<?include('../../Config/Conectar.inc');?>
+<?php
+include('../../Config/Conectar.inc');
+$archivoCsv = 'Padron_'.strtoupper(INST_NAME).'_'.date('Ymd').'.csv';
+$archivoCsvDisponible = is_file(__DIR__.DIRECTORY_SEPARATOR.$archivoCsv);
+?>
 <!DOCTYPE html>
 <html>
  <head>
@@ -29,6 +33,11 @@
   <button id="swapTemplate">Cambiar Agrupamiento</button>
 
   <p style="width: 800px"></p>
+  <?php if(!$archivoCsvDisponible){ ?>
+  <div style="margin:30px;padding:15px;border:1px solid #d39e00;background:#fff3cd;color:#664d03;">
+    No se encontró el archivo de estadísticas del día. Volvé al listado y usá el botón <strong>Estadísticas</strong> para generarlo.
+  </div>
+  <?php } ?>
   <div id="output" style="margin: 30px;"></div>
 </body>
 <script type="text/javascript" src="functions.js"></script>
@@ -40,15 +49,10 @@
     var pivotTable;
     var groupingConfig = {};
 
-    let date = new Date();
-    let year = date.getFullYear();
-    let month = ('0' + (date.getMonth() + 1)).slice(-2);
-    let day = ('0' + date.getDate()).slice(-2);
-
-    let formattedDate = `${year}${month}${day}`;
-
-    //Papa.parse("archivos/"+INST_NAME+"_padron_csv.csv", {
-    Papa.parse("Padron_"+INST_NAME.toUpperCase()+"_"+formattedDate+".csv", {
+    var archivoCsv = <?php echo json_encode($archivoCsv); ?>;
+    var archivoCsvDisponible = <?php echo $archivoCsvDisponible ? 'true' : 'false'; ?>;
+    if(!archivoCsvDisponible) return;
+    Papa.parse(archivoCsv, {
       download: true,
       skipEmptyLines: true,
       complete: function(parsed){

@@ -1063,6 +1063,48 @@ function OutputPadronCSV($consulta_padron,$formato,$parametro){
 				break;
 		}
 	}else{
+		if($parametro == 'guardar_csv'){
+			$directorio = __DIR__;
+			$archivoFinal = $directorio.DIRECTORY_SEPARATOR.$filename.'.csv';
+			$archivoTemporal = $archivoFinal.'.tmp';
+			$salida = fopen($archivoTemporal, 'wb');
+			if($salida === false){
+				header('Content-Type: application/json; charset=utf-8');
+				http_response_code(500);
+				echo json_encode(array('ok' => false, 'error' => 'No se pudo crear el archivo temporal.'));
+				return;
+			}
+
+			$encabezados = array();
+			for($columna = 0; $columna < mysql_num_fields($result); $columna++){
+				$encabezados[] = mysql_field_name($result, $columna);
+			}
+			fputcsv($salida, $encabezados);
+			while($fila = mysql_fetch_assoc($result)){
+				fputcsv($salida, array_values($fila));
+			}
+			fclose($salida);
+
+			if(file_exists($archivoFinal) && !unlink($archivoFinal)){
+				@unlink($archivoTemporal);
+				header('Content-Type: application/json; charset=utf-8');
+				http_response_code(500);
+				echo json_encode(array('ok' => false, 'error' => 'No se pudo reemplazar el CSV anterior.'));
+				return;
+			}
+			if(!rename($archivoTemporal, $archivoFinal)){
+				@unlink($archivoTemporal);
+				header('Content-Type: application/json; charset=utf-8');
+				http_response_code(500);
+				echo json_encode(array('ok' => false, 'error' => 'No se pudo publicar el CSV generado.'));
+				return;
+			}
+
+			UpdatearLog($consulta_padron['id_log'],$valida_cantidad);
+			header('Content-Type: application/json; charset=utf-8');
+			echo json_encode(array('ok' => true, 'archivo' => basename($archivoFinal), 'registros' => $valida_cantidad));
+			return;
+		}
 		//echo "sh zip_result.sh \"$sql\" \"$filename\"";exit();
     $result = shell_exec("sh zip_result.sh \"$sql\" \"$filename\"");
 

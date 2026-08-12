@@ -1,0 +1,10 @@
+{
+    "config": {
+        "platform": {
+            "php": "5.5.11"
+        }
+    },
+    "require": {
+        "aws/aws-sdk-php": "^3.278"
+    }
+}

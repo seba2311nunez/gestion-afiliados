@@ -139,7 +139,7 @@ include("../../Config/Conectar.inc");
 						<a id="btnModeloVisitar" class="btn btn-success text-light" target="_blank">
 							Modelo VISITAR 
 						</a>
-						<?
+						<?php
 					}
 				?>
 		        <button id="GuardarFiltros" class="btn btn-primary text-light">Guardar Filtros</button>
@@ -310,10 +310,22 @@ include("../../Config/Conectar.inc");
 			$("#btnAbrirEstadisticas").html('');					
 			$("#btnAbrirEstadisticas").html('<i class="fas fa-sync-alt fa-spin"></i> Procesando');
 			url = GetURLAJAX('guardar_csv'); //console.log(url); return false;
-			$.ajax({url: url}).then(function(){
+			$.ajax({url: url, dataType: 'json'}).done(function(response){
+				if(!response || response.ok !== true){
+					alert('No se pudo generar el archivo para estadísticas.');
+					$("#btnAbrirEstadisticas").removeClass('disabled');
+					$("#btnAbrirEstadisticas").html('Estadisticas');
+					return;
+				}
 				$("#btnAbrirEstadisticas").removeClass('disabled');
 				$("#btnAbrirEstadisticas").html('Estadisticas');					
 				abrirEnPestana('estadisticas_padron.php');
+			}).fail(function(xhr){
+				var mensaje = 'No se pudo generar el archivo para estadísticas.';
+				if(xhr.responseJSON && xhr.responseJSON.error) mensaje += '\n' + xhr.responseJSON.error;
+				alert(mensaje);
+				$("#btnAbrirEstadisticas").removeClass('disabled');
+				$("#btnAbrirEstadisticas").html('Estadisticas');
 			});
 
 			

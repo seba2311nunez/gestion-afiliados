@@ -26,3 +26,4 @@ rds.json
 rds_auditoria.json
 revision_opciones.json
 s3_directo.json
+vendor/
