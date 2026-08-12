@@ -44,6 +44,16 @@ function servicio_privado_ruta($servicio){
             $candidatas[] = $configUsuario.DIRECTORY_SEPARATOR.'gestion-afiliados'.DIRECTORY_SEPARATOR.$archivo;
             $candidatas[] = $configUsuario.DIRECTORY_SEPARATOR.$archivo;
         }
+        $documentRootServidor = isset($_SERVER['DOCUMENT_ROOT']) ? str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']) : '';
+        $posicionDomains = strpos($documentRootServidor, '/domains/');
+        if($posicionDomains !== false){
+            $homeDesdeDocumentRoot = substr($documentRootServidor, 0, $posicionDomains);
+            if($homeDesdeDocumentRoot !== ''){
+                $configDesdeDocumentRoot = rtrim($homeDesdeDocumentRoot, '/').'/config';
+                $candidatas[] = $configDesdeDocumentRoot.'/gestion-afiliados/'.$archivo;
+                $candidatas[] = $configDesdeDocumentRoot.'/'.$archivo;
+            }
+        }
         $candidatas[] = DIRECTORY_SEPARATOR.'etc'.DIRECTORY_SEPARATOR.'sistema.obra.social'.DIRECTORY_SEPARATOR.$archivo;
         if($servicio === 'rds') $candidatas[] = DIRECTORY_SEPARATOR.'etc'.DIRECTORY_SEPARATOR.'sistema.obra.social'.DIRECTORY_SEPARATOR.'rds_auditoria.json';
         $candidatas[] = DIRECTORY_SEPARATOR.'var'.DIRECTORY_SEPARATOR.'www'.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.$archivo;
