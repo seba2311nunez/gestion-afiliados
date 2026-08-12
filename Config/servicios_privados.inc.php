@@ -34,11 +34,16 @@ function servicio_privado_ruta($servicio){
     $esWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
     $candidatas = array();
     if($esWindows){
+        $candidatas[] = 'C:'.DIRECTORY_SEPARATOR.'xampp'.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'gestion-afiliados'.DIRECTORY_SEPARATOR.$archivo;
         $candidatas[] = 'C:'.DIRECTORY_SEPARATOR.'xampp'.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.$archivo;
         if($servicio === 'rds') $candidatas[] = 'C:'.DIRECTORY_SEPARATOR.'xampp'.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'rds_auditoria.json';
     } else {
         $homeUsuario = getenv('HOME');
-        if($homeUsuario) $candidatas[] = rtrim($homeUsuario, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.$archivo;
+        if($homeUsuario){
+            $configUsuario = rtrim($homeUsuario, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'config';
+            $candidatas[] = $configUsuario.DIRECTORY_SEPARATOR.'gestion-afiliados'.DIRECTORY_SEPARATOR.$archivo;
+            $candidatas[] = $configUsuario.DIRECTORY_SEPARATOR.$archivo;
+        }
         $candidatas[] = DIRECTORY_SEPARATOR.'etc'.DIRECTORY_SEPARATOR.'sistema.obra.social'.DIRECTORY_SEPARATOR.$archivo;
         if($servicio === 'rds') $candidatas[] = DIRECTORY_SEPARATOR.'etc'.DIRECTORY_SEPARATOR.'sistema.obra.social'.DIRECTORY_SEPARATOR.'rds_auditoria.json';
         $candidatas[] = DIRECTORY_SEPARATOR.'var'.DIRECTORY_SEPARATOR.'www'.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.$archivo;
