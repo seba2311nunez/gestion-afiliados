@@ -17,6 +17,19 @@ else{
 
 sss_crear_estructura();
 
+function sss_python_ejecutable(){
+	return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? 'python' : 'python3';
+}
+
+function sss_error_proceso_ftps($salida, $configPath){
+	$detalle = trim(strip_tags((string)$salida));
+	if($configPath) $detalle = str_replace($configPath, '[configuracion privada]', $detalle);
+	$detalle = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/', ' ', $detalle);
+	if($detalle === '') return 'El proceso FTPS no produjo salida. Verifique que shell_exec y Python 3 esten habilitados.';
+	if(strlen($detalle) > 400) $detalle = substr($detalle, 0, 400).'...';
+	return 'El proceso FTPS no devolvio JSON valido: '.$detalle;
+}
+
 
 switch ($parametro){
 
@@ -869,7 +882,7 @@ switch ($parametro){
 		}
 		$configPath = ftp_sss_config_path();
 
-		$cmd = 'python '.escapeshellarg($scriptPath)
+		$cmd = sss_python_ejecutable().' '.escapeshellarg($scriptPath)
 			.' subir'
 			.' --inst '.escapeshellarg(INST_NAME)
 			.' --rnos '.escapeshellarg(INST_RNOS)
@@ -882,8 +895,9 @@ switch ($parametro){
 		$decodificado = json_decode(trim((string)$salida), true);
 
 		if($decodificado === null){
-			sss_registrar_estado($id_lote,$periodo,'ERROR_ENVIO',$id_usuario,array('ultimo_error'=>'Salida inesperada del proceso FTPS'));
-			sss_json(array('status' => 'error', 'mensaje' => 'Salida inesperada al ejecutar el proceso FTPS.'));
+			$mensajeProceso = sss_error_proceso_ftps($salida, $configPath);
+			sss_registrar_estado($id_lote,$periodo,'ERROR_ENVIO',$id_usuario,array('ultimo_error'=>$mensajeProceso));
+			sss_json(array('status' => 'error', 'mensaje' => $mensajeProceso));
 		}
 		else{
 			if(isset($decodificado['status']) && $decodificado['status']==='ok') sss_registrar_estado($id_lote,$periodo,'ENVIADO',$id_usuario,array('fecha_enviado'=>date('Y-m-d H:i:s'),'ultimo_error'=>''));
@@ -906,7 +920,7 @@ switch ($parametro){
 		if(!ftp_sss_configuracion_disponible(INST_NAME, INST_RNOS, $mensajeConfig)){ sss_json(array('status'=>'error','mensaje'=>$mensajeConfig)); break; }
 		$configPath = ftp_sss_config_path();
 
-		$cmd = 'python '.escapeshellarg($scriptPath)
+		$cmd = sss_python_ejecutable().' '.escapeshellarg($scriptPath)
 			.' devolucion'
 			.' --inst '.escapeshellarg(INST_NAME)
 			.' --periodo '.escapeshellarg($periodo)
@@ -919,7 +933,7 @@ switch ($parametro){
 		$decodificado = json_decode(trim((string)$salida), true);
 
 		if($decodificado === null){
-			sss_json(array('status' => 'error', 'mensaje' => 'Salida inesperada al consultar la devolucion.'));
+			sss_json(array('status' => 'error', 'mensaje' => sss_error_proceso_ftps($salida, $configPath)));
 		}
 		else{
 			if(!empty($decodificado['encontrado_err'])) sss_registrar_estado($id_lote,$periodo,'ERROR_INMEDIATO_DISPONIBLE',$id_usuario,array('fecha_error_inmediato'=>date('Y-m-d H:i:s')));
@@ -1025,9 +1039,11 @@ switch ($parametro){
 		$destino = __DIR__.'/files/resultados'; if(!is_dir($destino)) mkdir($destino,0770,true);
 		$mensajeConfig = '';
 		if(!ftp_sss_configuracion_disponible(INST_NAME, INST_RNOS, $mensajeConfig)){ sss_json(array('status'=>'error','mensaje'=>$mensajeConfig)); break; }
-		$cmd = 'python '.escapeshellarg(__DIR__.'/scripts/ftp_sss.py').' resultados --inst '.escapeshellarg(INST_NAME).' --rnos '.escapeshellarg(INST_RNOS).' --config '.escapeshellarg(ftp_sss_config_path()).' --periodo '.escapeshellarg($lote['descripcion']).' --destino '.escapeshellarg($destino).' 2>&1';
-		$respuesta = json_decode(trim((string)shell_exec($cmd)),true);
-		if(!$respuesta || $respuesta['status']!=='ok'){ sss_json($respuesta?$respuesta:array('status'=>'error','mensaje'=>'No se pudo consultar el resultado definitivo.')); break; }
+		$configPath = ftp_sss_config_path();
+		$cmd = sss_python_ejecutable().' '.escapeshellarg(__DIR__.'/scripts/ftp_sss.py').' resultados --inst '.escapeshellarg(INST_NAME).' --rnos '.escapeshellarg(INST_RNOS).' --config '.escapeshellarg($configPath).' --periodo '.escapeshellarg($lote['descripcion']).' --destino '.escapeshellarg($destino).' 2>&1';
+		$salidaResultados = shell_exec($cmd);
+		$respuesta = json_decode(trim((string)$salidaResultados),true);
+		if(!$respuesta || $respuesta['status']!=='ok'){ sss_json($respuesta?$respuesta:array('status'=>'error','mensaje'=>sss_error_proceso_ftps($salidaResultados, $configPath))); break; }
 		if(empty($respuesta['disponible'])){ sss_registrar_estado($id_lote,$lote['descripcion'],'ESPERANDO_RESULTADOS',$id_usuario,array('resultados_disponibles_desde'=>$disponibleDesde)); sss_json(array('status'=>'pendiente','mensaje'=>'La SSS aun no publico Devolucion.zip.')); break; }
 
 		$aceptados = !empty($respuesta['aceptados']) ? importar_archivo_resultado_sss($respuesta['aceptados'],$lote['descripcion'],$id_lote,$id_usuario,'ACEPTADO') : 0;
