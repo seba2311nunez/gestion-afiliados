@@ -30,6 +30,43 @@ function sss_error_proceso_ftps($salida, $configPath){
 	return 'El proceso FTPS no devolvio JSON valido: '.$detalle;
 }
 
+function sss_ftp_ultimo_error(){
+	$error = error_get_last();
+	return $error && isset($error['message']) ? preg_replace('/\s+/', ' ', $error['message']) : '';
+}
+
+function sss_ftp_subir_php($archivoLocal, $periodo){
+	if(!function_exists('ftp_ssl_connect')) throw new Exception('El servidor PHP no tiene soporte FTPS.');
+	$credenciales = ftp_sss_credenciales(INST_NAME, INST_RNOS);
+	$host = trim((string)$credenciales['host']);
+	$puerto = isset($credenciales['puerto']) ? intval($credenciales['puerto']) : 21;
+	$timeout = isset($credenciales['timeout']) ? intval($credenciales['timeout']) : 20;
+	if($puerto <= 0) $puerto = 21;
+	if($timeout <= 0) $timeout = 20;
+
+	$ftp = @ftp_ssl_connect($host, $puerto, $timeout);
+	if(!$ftp) throw new Exception('No se pudo establecer la conexion FTPS con la SSS. '.sss_ftp_ultimo_error());
+	try{
+		if(!@ftp_login($ftp, $credenciales['usuario'], $credenciales['clave'])){
+			throw new Exception('La SSS rechazo el usuario o la clave FTPS. '.sss_ftp_ultimo_error());
+		}
+		if(!@ftp_pasv($ftp, true)) throw new Exception('No se pudo activar el modo pasivo FTPS. '.sss_ftp_ultimo_error());
+		$periodoCompacto = str_replace('-', '', trim((string)$periodo));
+		$carpetaRemota = '/'.$periodoCompacto;
+		if(!@ftp_chdir($ftp, $carpetaRemota)){
+			throw new Exception('No existe o no es accesible la carpeta remota '.$carpetaRemota.'. '.sss_ftp_ultimo_error());
+		}
+		$archivo = @fopen($archivoLocal, 'rb');
+		if(!$archivo) throw new Exception('No se pudo abrir el archivo local para enviarlo.');
+		$subido = @ftp_fput($ftp, basename($archivoLocal), $archivo, FTP_BINARY);
+		fclose($archivo);
+		if(!$subido) throw new Exception('La SSS rechazo la escritura del archivo en '.$carpetaRemota.'. '.sss_ftp_ultimo_error());
+		return array('status'=>'ok','ruta_remota'=>$carpetaRemota.'/'.basename($archivoLocal));
+	} finally {
+		@ftp_close($ftp);
+	}
+}
+
 
 switch ($parametro){
 
@@ -858,11 +895,7 @@ switch ($parametro){
 		break;
 
 	case 'ftp_sss_subir_novedades':
-		// Sube al FTP de SSS el TXT que ya genero la opcion "Exportar".
-		// La transferencia la hace un script de Python (scripts/ftp_sss.py)
-		// porque esta version de PHP no tiene soporte SSL en su extension
-		// FTP. PHP solo arma el comando, ejecuta y reenvia el JSON tal
-		// cual lo imprime Python.
+		// Sube por FTPS nativo de PHP el TXT que ya genero "Exportar".
 		header('Content-Type: application/json; charset=utf-8');
 
 		$filename = strtoupper(INST_NAME)."_novedades_".$periodo.".txt";
@@ -873,36 +906,20 @@ switch ($parametro){
 			break;
 		}
 
-		$scriptPath = __DIR__.'/scripts/ftp_sss.py';
 		$mensajeConfig = '';
 		if(!ftp_sss_configuracion_disponible(INST_NAME, INST_RNOS, $mensajeConfig)){
 			sss_registrar_estado($id_lote,$periodo,'SIN_CREDENCIALES_FTPS',$id_usuario,array('ultimo_error'=>$mensajeConfig));
 			sss_json(array('status'=>'error','mensaje'=>$mensajeConfig));
 			break;
 		}
-		$configPath = ftp_sss_config_path();
-
-		$cmd = sss_python_ejecutable().' '.escapeshellarg($scriptPath)
-			.' subir'
-			.' --inst '.escapeshellarg(INST_NAME)
-			.' --rnos '.escapeshellarg(INST_RNOS)
-			.' --config '.escapeshellarg($configPath)
-			.' --periodo '.escapeshellarg($periodo)
-			.' --archivo '.escapeshellarg($rutaLocal)
-			.' 2>&1';
-
-		$salida = shell_exec($cmd);
-		$decodificado = json_decode(trim((string)$salida), true);
-
-		if($decodificado === null){
-			$mensajeProceso = sss_error_proceso_ftps($salida, $configPath);
-			sss_registrar_estado($id_lote,$periodo,'ERROR_ENVIO',$id_usuario,array('ultimo_error'=>$mensajeProceso));
-			sss_json(array('status' => 'error', 'mensaje' => $mensajeProceso));
-		}
-		else{
-			if(isset($decodificado['status']) && $decodificado['status']==='ok') sss_registrar_estado($id_lote,$periodo,'ENVIADO',$id_usuario,array('fecha_enviado'=>date('Y-m-d H:i:s'),'ultimo_error'=>''));
-			else sss_registrar_estado($id_lote,$periodo,'ERROR_ENVIO',$id_usuario,array('ultimo_error'=>isset($decodificado['mensaje'])?$decodificado['mensaje']:'Error FTPS'));
-			sss_json($decodificado);
+		try{
+			$respuestaFtp = sss_ftp_subir_php($rutaLocal, $periodo);
+			sss_registrar_estado($id_lote,$periodo,'ENVIADO',$id_usuario,array('fecha_enviado'=>date('Y-m-d H:i:s'),'ultimo_error'=>''));
+			sss_json($respuestaFtp);
+		}catch(Exception $e){
+			$mensajeFtp = $e->getMessage();
+			sss_registrar_estado($id_lote,$periodo,'ERROR_ENVIO',$id_usuario,array('ultimo_error'=>$mensajeFtp));
+			sss_json(array('status'=>'error','mensaje'=>$mensajeFtp));
 		}
 		break;
 

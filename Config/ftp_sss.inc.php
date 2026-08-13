@@ -140,4 +140,21 @@ function ftp_sss_configuracion_disponible($instName, $instRnos, &$mensaje){
     return true; */
 }
 
+function ftp_sss_credenciales($instName, $instRnos){
+    $json = servicio_privado_archivo('ftp_sss');
+    $claveInst = strtolower(trim($instName));
+    $claveRnos = trim((string)$instRnos);
+    $entrada = isset($json[$claveInst]) ? $json[$claveInst] : (isset($json[$claveRnos]) ? $json[$claveRnos] : null);
+    if(!is_array($entrada)) throw new Exception('No hay credenciales FTPS para la obra social activa.');
+    foreach(array('host','usuario','clave') as $campo){
+        if(!isset($entrada[$campo]) || trim((string)$entrada[$campo]) === ''){
+            throw new Exception('La configuracion FTPS no tiene el campo '.$campo.'.');
+        }
+    }
+    if(isset($entrada['rnos']) && trim((string)$entrada['rnos']) !== $claveRnos){
+        throw new Exception('La configuracion FTPS no corresponde al RNOS de la sesion.');
+    }
+    return $entrada;
+}
+
 ?>
